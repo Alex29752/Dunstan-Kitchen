@@ -188,41 +188,41 @@ nav .wrap{display:flex;padding:0}
 <script type="application/json" id="art">{}</script>
 
 <script>
-// Load seed data from external JSON files
-async function loadSeedData() {
-  const files = [
-    { name: 'seed-data.json', id: 'seed' },
-    { name: 'aisles.json', id: 'aisles' },
-    { name: 'art.json', id: 'art' }
+// Prevent DOMContentLoaded from firing the app init until data is ready
+let dataReady = false;
+
+async function loadAllData() {
+  const promises = [
+    fetch('seed-data.json').then(r => r.json()).then(data => {
+      document.getElementById('seed').textContent = JSON.stringify(data);
+    }),
+    fetch('aisles.json').then(r => r.json()).then(data => {
+      document.getElementById('aisles').textContent = JSON.stringify(data);
+    }),
+    fetch('art.json').then(r => r.json()).then(data => {
+      document.getElementById('art').textContent = JSON.stringify(data);
+    })
   ];
   
   try {
-    for (const file of files) {
-      try {
-        const response = await fetch(file.name);
-        const data = await response.json();
-        const el = document.getElementById(file.id);
-        if (el) {
-          el.textContent = JSON.stringify(data);
-        }
-      } catch (err) {
-        console.warn('Could not load ' + file.name + ':', err.message);
-      }
-    }
+    await Promise.all(promises);
   } catch (err) {
-    console.error('Seed data loading error:', err);
+    console.error('Error loading data:', err);
+  }
+  
+  dataReady = true;
+  
+  // If DOMContentLoaded already fired, we need to manually trigger app init
+  if (document.readyState !== 'loading') {
+    const event = new Event('seed-data-ready');
+    document.dispatchEvent(event);
   }
 }
 
-// Load data before DOMContentLoaded fires
-if (document.readyState === 'loading') {
-  // Document still loading, load data and it will be ready by DOMContentLoaded
-  loadSeedData();
-} else {
-  // Document already loaded, load data immediately
-  loadSeedData();
-}
+// Start loading data
+loadAllData();
 </script>
+
     openSheet("Sunday "+pretty(s0), snackSheet(s0));
     if(!snackOn(s0)) renderSnackPicker(); return}
   var sc=e.target.closest("[data-schange]"); if(sc){ var s1=sc.dataset.schange;
