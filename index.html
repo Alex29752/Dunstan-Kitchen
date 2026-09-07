@@ -198,6 +198,8 @@ const TEMPLATE=(function(){
 const $=function(s){return document.querySelector(s)};
 const esc=function(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){
   return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
+// Wait for DOM to be fully loaded before accessing elements
+document.addEventListener("DOMContentLoaded", function initApp(){
 const META=JSON.parse($("#aisles").textContent);
 const AISLES=META.aisles, STAPLES=META.staples, RULES=META.rules, ART=JSON.parse($("#art").textContent);
 let STATE=JSON.parse($("#seed").textContent);
@@ -1169,5 +1171,6 @@ applyTheme(); render(); setStatus("idle","Loading");
   canWrite=true; setStatus("saved","Saved"); render();
   if(merged) queueSave();
 })();
+}); // Close DOMContentLoaded event listener
 
 </script>
