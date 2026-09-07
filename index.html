@@ -188,39 +188,32 @@ nav .wrap{display:flex;padding:0}
 <script type="application/json" id="art">{}</script>
 
 <script>
-// Prevent DOMContentLoaded from firing the app init until data is ready
-let dataReady = false;
-
-async function loadAllData() {
-  const promises = [
-    fetch('seed-data.json').then(r => r.json()).then(data => {
-      document.getElementById('seed').textContent = JSON.stringify(data);
-    }),
-    fetch('aisles.json').then(r => r.json()).then(data => {
-      document.getElementById('aisles').textContent = JSON.stringify(data);
-    }),
-    fetch('art.json').then(r => r.json()).then(data => {
-      document.getElementById('art').textContent = JSON.stringify(data);
-    })
-  ];
+// Directly load data and populate before app init
+Promise.all([
+  fetch('seed-data.json').then(r => r.json()),
+  fetch('aisles.json').then(r => r.json()),
+  fetch('art.json').then(r => r.json())
+]).then(([seedData, aislesData, artData]) => {
+  // Update all elements
+  const seedEl = document.getElementById('seed');
+  const aislesEl = document.getElementById('aisles');
+  const artEl = document.getElementById('art');
   
-  try {
-    await Promise.all(promises);
-  } catch (err) {
-    console.error('Error loading data:', err);
+  if (seedEl) seedEl.textContent = JSON.stringify(seedData);
+  if (aislesEl) aislesEl.textContent = JSON.stringify(aislesData);
+  if (artEl) artEl.textContent = JSON.stringify(artData);
+  
+  // Force app to reinitialize if it already ran
+  if (window.__appInitialized === undefined) {
+    // App hasn't initialized yet, it will use the updated data
+  } else {
+    // App already initialized, trigger re-render
+    window.location.reload();
   }
-  
-  dataReady = true;
-  
-  // If DOMContentLoaded already fired, we need to manually trigger app init
-  if (document.readyState !== 'loading') {
-    const event = new Event('seed-data-ready');
-    document.dispatchEvent(event);
-  }
-}
-
-// Start loading data
-loadAllData();
+}).catch(err => {
+  console.error('Failed to load seed data:', err);
+  // Continue anyway with empty data
+});
 </script>
 
     openSheet("Sunday "+pretty(s0), snackSheet(s0));
