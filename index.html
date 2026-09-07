@@ -162,6 +162,10 @@ nav .wrap{display:flex;padding:0}
   .banner{height:220px}
 }
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js"></script>
+
 
 <header><div class="wrap"><div class="brand">
   <h1>Dunstan Kitchen</h1>
@@ -214,6 +218,62 @@ let ui={tab:"plan",weeks:4,snweeks:10,rq:"",rtag:"",range:"week",ptag:"",pday:""
 
 /* ---------- local (per device) bits ---------- */
 function lsGet(k,d){ try{var v=localStorage.getItem(k); return v==null?d:JSON.parse(v)}catch(e){return d} }
+
+// ===== Firebase Setup =====
+let db, firebaseReady = false;
+async function initFirebase() {
+  try {
+    const { initializeApp } = window;
+    const { getDatabase, ref, onValue, set } = window;
+    const { getAuth, signInAnonymously } = window;
+    
+    // Map Firebase modules
+    window.firebase = { initializeApp: window.firebase?.initializeApp || function(c) { return this; } };
+    
+    if(!initializeApp) return; // SDK not loaded yet
+    
+    const app = firebase.initializeApp(
+const firebaseConfig = {
+  apiKey: "AIzaSyDOZitgaDde03GMvr47EKHMuvqZPcc9EPU",
+  authDomain: "dunstan-kitchen.firebaseapp.com",
+  projectId: "dunstan-kitchen",
+  storageBucket: "dunstan-kitchen.firebasestorage.app",
+  messagingSenderId: "924041763300",
+  appId: "1:924041763300:web:517d32eac22e577c1a8ff1"
+};
+);
+    
+    // Initialize auth
+    const auth = getAuth(app);
+    await signInAnonymously(auth);
+    
+    // Get database reference
+    db = getDatabase(app);
+    firebaseReady = true;
+    
+    // Listen for remote updates
+    const stateRef = ref(db, 'state');
+    onValue(stateRef, (snapshot) => {
+      if (!snapshot.exists()) return;
+      const remoteState = snapshot.val();
+      if (remoteState && remoteState !== JSON.stringify(STATE)) {
+        STATE = remoteState;
+        render();
+      }
+    });
+    
+    setStatus("saved", "Synced");
+  } catch(e) {
+    console.warn("Firebase init failed:", e);
+    firebaseReady = false;
+  }
+}
+
+// Initialize Firebase once page loads
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(initFirebase, 100);
+});
+
 function lsSet(k,v){ try{localStorage.setItem(k,JSON.stringify(v))}catch(e){} }
 const weekMon=function(d){ var t=parseD(d); return addDays(d, -((t.getDay()+6)%7)) };
 const weekSun=function(d){ return addDays(weekMon(d),6) };
